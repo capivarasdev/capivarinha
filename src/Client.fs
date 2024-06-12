@@ -66,11 +66,12 @@ module Action =
     }
 
     let beMoreIronic (deps: Dependencies) (message: SocketMessage) = task {
-        let normalized = message.Content.ToLowerInvariant()
+        let content = String.normalize message.Content
 
         let isForbidden =
             deps.Settings.ForbiddenWords
-            |> Seq.exists (fun word -> normalized.Contains(word.ToLowerInvariant()))
+            |> List.map String.normalize
+            |> List.exists (fun word -> content.Contains(word))
 
         if isForbidden then
             do! message.DeleteAsync()
