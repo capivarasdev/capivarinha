@@ -4,14 +4,10 @@ open System
 open System.Threading.Tasks
 open Model
 
-open FsToolkit.ErrorHandling
-
 open Discord
 open Discord.WebSocket
 
 module Action =
-    let internal random = Random()
-
     let dieReaction (deps: Dependencies) (guild: SocketGuild) (textChannel: SocketTextChannel) (message: IUserMessage) (channel: IChannel) (reaction: SocketReaction) = task {
         let userReactionId = reaction.UserId.ToString()
         
@@ -19,7 +15,7 @@ module Action =
         let messageUser =  guild.GetUser(message.Author.Id)
 
         let rollDie () = task {
-            let die = random.Next(1, 7)
+            let die = Random.range 1 6
             if die = 6 then
                 let! _ = message.ReplyAsync(sprintf "%s rolled the die on you and got a six, you are now muted!" reactionUser.Mention)
                 do! messageUser.SetTimeOutAsync(TimeSpan.FromMinutes 5)
