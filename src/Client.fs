@@ -21,7 +21,7 @@ module Action =
                 CannotRoll (threshold - diff)
 
         let muteUser (user: SocketGuildUser) value = task {
-            let! _ = message.ReplyAsync(sprintf "%s rolled the die on you and got a %d, you are now muted!" user.Mention value)
+            let! _ = message.ReplyAsync(sprintf "%s rolled the die on you and got a %d, %s is now muted!" user.Mention value user.Mention)
             do! user.SetTimeOutAsync(TimeSpan.FromMinutes 5)
             let! _ = Database.Die.registerUserRoll deps.ConnectionString (user.Id.ToString())
             ()
