@@ -11,6 +11,10 @@ module Model =
     open System
     open Discord.WebSocket
 
+    type UserRollTimeout =
+        | CanRoll
+        | CannotRoll of TimeSpan
+
     type Dependencies = {
         Logger: unit
         ConnectionString: string

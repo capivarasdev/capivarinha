@@ -21,7 +21,7 @@ module Main =
             let client = new DiscordSocketClient(config)
 
             let deps = {
-                Logger = () 
+                Logger = ()
                 ConnectionString = connectionString
                 Client = client
                 Settings = settings
