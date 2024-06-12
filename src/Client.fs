@@ -66,14 +66,20 @@ module Action =
     }
 
     let beMoreIronic (deps: Dependencies) (message: SocketMessage) = task {
-        let normalized = message.Content.ToLower()
+        let normalized = message.Content.ToLowerInvariant()
 
-        if normalized.Contains("ironicamente") then
+        let isForbidden =
+            deps.Settings.ForbiddenWords
+            |> Seq.exists (fun word -> normalized.Contains(word.ToLowerInvariant()))
+
+        if isForbidden then
             do! message.DeleteAsync()
     }
 
 module Client =
-    let onReady = Func<Task>(fun _ -> task { printfn "[%s] bot is running" (DateTimeOffset.Now.ToString())  })
+    let onReady (deps: Dependencies) = Func<Task>(fun _ -> task { 
+        printfn "[%s] bot is running" (DateTimeOffset.Now.ToString())
+        printfn "Current forbidden words: %A" deps.Settings.ForbiddenWords  })
 
     let onReactionAdded (deps: Dependencies) (message: IUserMessage) channel (reaction: SocketReaction) = task {
         let! user = deps.Client.GetUserAsync(message.Author.Id)

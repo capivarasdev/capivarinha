@@ -27,7 +27,7 @@ module Main =
                 Settings = settings
             }
 
-            client.add_Ready Client.onReady
+            client.add_Ready (Client.onReady deps)
             client.add_ReactionAdded (fun message channel reaction -> task {
                 let! msg = message.GetOrDownloadAsync()
                 let! chan = channel.GetOrDownloadAsync()

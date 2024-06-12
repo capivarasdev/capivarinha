@@ -9,6 +9,8 @@ type Settings = {
 
     [<DefaultValue("sqlite.db")>]
     DatabasePath: string
+    [<DefaultValue("ironicamente")>]
+    ForbiddenWords: string list
 }
 
 
