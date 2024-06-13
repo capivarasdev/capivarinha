@@ -66,15 +66,16 @@ module Action =
     }
 
     let beMoreIronic (deps: Dependencies) (message: SocketMessage) = task {
-        let content = String.normalize message.Content
+        if (message.Author.Id = 866170272762953738UL) then
+            let content = String.normalize message.Content
 
-        let isForbidden =
-            deps.Settings.ForbiddenWords
-            |> List.map String.normalize
-            |> List.exists (fun word -> content.Contains(word))
+            let isForbidden =
+                deps.Settings.ForbiddenWords
+                |> List.map String.normalize
+                |> List.exists (fun word -> content.Contains(word))
 
-        if isForbidden then
-            do! message.DeleteAsync()
+            if isForbidden then
+                do! message.DeleteAsync()
     }
 
 module Client =
@@ -93,9 +94,14 @@ module Client =
         ()
     }
 
+    let onMessageUpdate (deps: Dependencies) (message: SocketMessage) = task {
+        let! user = deps.Client.GetUserAsync(message.Author.Id)
+        if (not user.IsBot) then
+            do! Action.beMoreIronic deps message
+    }
+
     let onMessageReceived (deps: Dependencies) (message: SocketMessage) = task {
         let! user = deps.Client.GetUserAsync(message.Author.Id)
         if (not user.IsBot) then
-            if (message.Author.Id = 866170272762953738UL) then
                 do! Action.beMoreIronic deps message
     }

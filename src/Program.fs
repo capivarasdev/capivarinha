@@ -33,6 +33,10 @@ module Main =
                 let! chan = channel.GetOrDownloadAsync()
                 do! Client.onReactionAdded deps msg chan reaction
             })
+
+            client.add_MessageUpdated (fun _ message _ -> task {
+                do! Client.onMessageUpdate deps message
+            })
             
             client.add_MessageReceived (fun message -> task {
                 do! Client.onMessageReceived deps message
