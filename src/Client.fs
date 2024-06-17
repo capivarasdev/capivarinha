@@ -12,7 +12,7 @@ open FsToolkit.ErrorHandling
 module Action =
     let dieReaction (deps: Dependencies) (guild: SocketGuild) (textChannel: SocketTextChannel) (message: IUserMessage) (reaction: SocketReaction) = taskResult {
         let isTimeThresholdMet (time: DateTimeOffset) (threshold: int) =
-            let threshold = TimeSpan.FromMinutes threshold
+            let threshold = TimeSpan.FromDays threshold
             let diff = DateTimeOffset.Now.Subtract(time)
 
             if (diff > threshold) then
@@ -43,7 +43,7 @@ module Action =
         let! canRoll =
             let bind = function 
                 | None -> CanRoll
-                | Some { RolledAt = rolledAt } -> (isTimeThresholdMet rolledAt 10)
+                | Some { RolledAt = rolledAt } -> (isTimeThresholdMet rolledAt 1)
 
             Database.Die.userLastRoll deps.ConnectionString userReactionId
             |> AsyncResult.map bind
