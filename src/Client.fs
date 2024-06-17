@@ -59,7 +59,7 @@ module Action =
         | value, CanRoll ->
             do! missedRoll reactionUser value
         | _, CannotRoll timeLeft ->
-            let diffStr = timeLeft.ToString(@"dd 'days' HH 'hrs' mm 'mins'")
+            let diffStr = timeLeft.ToString(@"%dd' days'\ mm' mins'\ ss' secs'")
             let! _ = textChannel.SendMessageAsync(sprintf "%s needs to wait %s before rolling a die again!" reactionUser.Mention diffStr)
             let! _ = message.RemoveReactionAsync(reaction.Emote, reactionUser)
             ()
