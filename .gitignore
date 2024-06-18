@@ -9,6 +9,7 @@
 .vs/
 *.vcxproj.user
 *.code-workspace
+launchSettings.json
 
 # Others
 *sqlite*
