@@ -8,7 +8,6 @@ open Discord
 open Discord.WebSocket
 open FsToolkit.ErrorHandling
 
-
 module Action =
     let dieReaction (deps: Dependencies) (guild: SocketGuild) (textChannel: SocketTextChannel) (message: IUserMessage) (reaction: SocketReaction) = taskResult {
         let isTimeThresholdMet (time: DateTimeOffset) (threshold: int) =
@@ -93,8 +92,16 @@ module Action =
 
 module Client =
     let onReady (deps: Dependencies) = Func<Task>(fun _ -> task {
+        do! Economy.Interface.createCommands deps
+
         printfn "[%s] bot is running" (DateTimeOffset.Now.ToString())
         printfn "Current forbidden words: %A" deps.Settings.ForbiddenWords  })
+
+    let onSlashCommandExec (deps: Dependencies) (command: SocketSlashCommand) = task {
+        let! _ = command.RespondAsync (sprintf "You executed %s" command.Data.Name)
+
+        ()
+    }
 
     let onReactionAdded (deps: Dependencies) (message: IUserMessage) channel (reaction: SocketReaction) = task {
         let! user = deps.Client.GetUserAsync(message.Author.Id)
