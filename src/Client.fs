@@ -78,8 +78,21 @@ module Action =
                 do! message.DeleteAsync()
     }
 
+    let saveMessageMetadata (deps: Dependencies) (message: IMessage) = task {
+        let! result =
+            Database.Message.saveMetadata
+                deps.ConnectionString
+                (message.Author.Id.ToString())
+                message.Content.Length
+
+        match result with
+        | Ok _ -> ()
+        | Error e ->
+            printfn "error writing message to database: %A" e
+    }
+
 module Client =
-    let onReady (deps: Dependencies) = Func<Task>(fun _ -> task { 
+    let onReady (deps: Dependencies) = Func<Task>(fun _ -> task {
         printfn "[%s] bot is running" (DateTimeOffset.Now.ToString())
         printfn "Current forbidden words: %A" deps.Settings.ForbiddenWords  })
 
@@ -104,4 +117,5 @@ module Client =
         let! user = deps.Client.GetUserAsync(message.Author.Id)
         if (not user.IsBot) then
                 do! Action.beMoreIronic deps message
+                do! Action.saveMessageMetadata deps message
     }
