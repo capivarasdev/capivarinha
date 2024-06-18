@@ -98,9 +98,7 @@ module Client =
         printfn "Current forbidden words: %A" deps.Settings.ForbiddenWords  })
 
     let onSlashCommandExec (deps: Dependencies) (command: SocketSlashCommand) = task {
-        let! _ = command.RespondAsync (sprintf "You executed %s" command.Data.Name)
-
-        ()
+        do! Economy.Discord.tryProcessCommand deps command
     }
 
     let onReactionAdded (deps: Dependencies) (message: IUserMessage) channel (reaction: SocketReaction) = task {
