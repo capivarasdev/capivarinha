@@ -1,3 +1,17 @@
+# Ignore Visual Studio temporary files, build results, and
+# user-specific files
+*.log
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+.vscode/
+.vs/
+*.vcxproj.user
+*.code-workspace
+launchSettings.json
+
+# Others
 *sqlite*
 **/bin
 **/obj

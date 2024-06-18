@@ -28,6 +28,11 @@ module Main =
             }
 
             client.add_Ready (Client.onReady deps)
+
+            client.add_SlashCommandExecuted (fun command -> task {
+                do! Client.onSlashCommandExec deps command
+            })
+
             client.add_ReactionAdded (fun message channel reaction -> task {
                 let! msg = message.GetOrDownloadAsync()
                 let! chan = channel.GetOrDownloadAsync()
