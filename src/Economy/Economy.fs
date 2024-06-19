@@ -80,7 +80,9 @@ module Interface =
     open FsToolkit.ErrorHandling
     
     module Commands =
-        let getBalanceCommand (deps: Model.Dependencies) (command: SocketSlashCommand) = asyncResult {
+        let getBalanceCommand (deps: Model.Dependencies) (cmd: Command.Balance) = asyncResult {
+            let command = cmd.SlashCommand
+
             let! wallet =
                 Repository.getUserWallet deps.ConnectionString (string command.User.Id)
 
@@ -181,11 +183,4 @@ module Interface =
         let! _ = createTransacCommand deps
         
         ()
-    }
-
-    let tryProcessCommand (deps: Model.Dependencies) (command: SocketSlashCommand) = task {
-        match CommandNames.fromString command.Data.Name with
-        | CommandNames.Balance -> do! Commands.getBalanceCommand deps command |> AsyncResult.ignoreError
-        | CommandNames.Transac -> do! Commands.makeTransactionCommand deps command |> AsyncResult.ignoreError
-        | CommandNames.Unknown _ -> ()
     }

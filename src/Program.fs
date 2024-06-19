@@ -6,7 +6,6 @@ open Discord
 open Discord.WebSocket
 open FSharp.Control
 open Model
-open FsToolkit.ErrorHandling.Operator.Result
 
 module Main =
     let commandMailbox = MailboxProcessor.Start(fun inbox -> async {
@@ -14,9 +13,8 @@ module Main =
         do! value |> Async.AwaitTask
     })
 
-    let tryCmdHandler =
-        let cmdHandler = Command.handleCommand commandMailbox.Post
-        Command.tryCommandHandler cmdHandler
+    let tryCmdHandler deps =
+        Handler.tryCommandHandler (Handler.handleCommand deps commandMailbox.Post)
 
     [<EntryPoint>]
     let main _ =
@@ -29,7 +27,7 @@ module Main =
             let config = DiscordSocketConfig(GatewayIntents=(GatewayIntents.AllUnprivileged ||| GatewayIntents.MessageContent))
             let client = new DiscordSocketClient(config)
 
-            let tryUser user = Command.tryCommandUser client user
+            let tryUser user = Handler.tryCommandUser client user
 
             let deps = {
                 Logger = ()
@@ -43,7 +41,8 @@ module Main =
             client.add_SlashCommandExecuted (fun command -> task {
                 tryUser command.User command
                 |> Result.bind (Client.trySlashCommand)
-                |> tryCmdHandler
+                |> tryCmdHandler deps 
+                |> ignore
             })
 
             client.add_ReactionAdded (fun message _channel reaction -> task {
@@ -52,19 +51,22 @@ module Main =
 
                 tryUser reactionUser reaction.Emote
                 |> Result.bind (Client.tryReactionAdded reaction reactionUser msg)
-                |> tryCmdHandler
+                |> tryCmdHandler deps
+                |> ignore
             })
 
             client.add_MessageUpdated (fun _ message _ -> task {
                 tryUser message.Author message
                 |> Result.bind Client.tryMessageReceived
-                |> tryCmdHandler
+                |> tryCmdHandler deps
+                |> ignore
             })
 
             client.add_MessageReceived (fun message -> task {
                 tryUser message.Author message
                 |> Result.bind Client.tryMessageReceived
-                |> tryCmdHandler
+                |> tryCmdHandler deps
+                |> ignore
             })
 
             do! client.LoginAsync(TokenType.Bot, settings.DiscordToken)

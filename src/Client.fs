@@ -4,8 +4,6 @@ open System
 open System.Threading.Tasks
 open Capivarinha.Command
 open Capivarinha.Model
-open Model
-
 open Discord
 open Discord.WebSocket
 open FsToolkit.ErrorHandling
@@ -101,6 +99,7 @@ module Client =
 
     let trySlashCommand (command: SocketSlashCommand) =
         match command.CommandName with
+        | name when name = "balance" -> Ok (Command.Balance { SlashCommand = command } )
         | name when name = "" -> Error (CommandError.NotSupported)
         | _ -> Error (CommandError.NotSupported)
 
