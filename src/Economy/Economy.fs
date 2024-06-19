@@ -1,5 +1,6 @@
 ﻿module Economy
 
+// This module will be used later, when we embellish the messages
 module Domain =
     type Currency = Currency of int
 
@@ -84,25 +85,39 @@ module Interface =
                 Repository.getUserWallet deps.ConnectionString (string command.User.Id)
 
             match wallet with
-            | Some w -> do! command.RespondAsync (sprintf "Suas unidades de moeda: `%i`." w.Amount)
-            | None -> do! command.RespondAsync ("Não foi possível buscar sua carteira.")
+            | Some w -> do! command.RespondAsync (sprintf "You have %i coins." w.Amount)
+            | None -> do! command.RespondAsync ("Could not fetch your wallet.")
         }
 
         let makeTransactionCommand (deps: Model.Dependencies) (command: SocketSlashCommand) = asyncResult {
-            let amount = command.Data.Options |> Seq.find (fun i -> i.Name = "amount")
-            let transferToUser = command.Data.Options |> Seq.find (fun i -> i.Name = "user")
+            let amount = (command.Data.Options |> Seq.find (fun i -> i.Name = "amount")).Value |> string |> int
+            let transferToUser = (command.Data.Options |> Seq.find (fun i -> i.Name = "user")).Value :?> SocketGuildUser
 
-            let transac: Entity.Transaction = {
-                FromDiscordUserId = string command.User.Id
-                Amount = int (string amount.Value)
-                ToDiscordUserId = string (transferToUser.Value :?> SocketGuildUser).Id
-            }
+            if command.User.Id = transferToUser.Id then
+                do! command.RespondAsync "You cannot transfer to yourself."
+            else if amount < 1 then
+                do! command.RespondAsync "Amount has to be greater than 0."
+
+            let! wallet =
+                Repository.getUserWallet deps.ConnectionString (string command.User.Id)
+
+            match wallet with
+            | Some w ->
+                if w.Amount >= int amount then
+                    let transac: Entity.Transaction = {
+                        FromDiscordUserId = string command.User.Id
+                        Amount = amount
+                        ToDiscordUserId = string transferToUser.Id
+                    }
         
-            let! succ = Repository.createTransaction deps.ConnectionString transac
+                    let! succ = Repository.createTransaction deps.ConnectionString transac
 
-            match succ with
-            | 1 -> do! command.RespondAsync (sprintf "Transação feita com sucesso!")
-            | _ -> do! command.RespondAsync (sprintf "Não foi possível fazer sua transação.")
+                    match succ with
+                    | 1 -> do! command.RespondAsync "Transaction was successful!"
+                    | _ -> do! command.RespondAsync "Transaction failed."
+                else
+                    do! command.RespondAsync "You don't have enough funds."
+            | None -> do! command.RespondAsync "Could not fetch your wallet."
         }
 
     let private createBalanceCommand (deps: Model.Dependencies) = task {
@@ -125,7 +140,7 @@ module Interface =
                 .AddOptions(
                     [ SlashCommandOptionBuilder()
                         .WithName("amount")
-                        .WithType(ApplicationCommandOptionType.Number)
+                        .WithType(ApplicationCommandOptionType.Integer)
                         .WithDescription("The amount to be transferred")
                         .WithRequired(true)
                         
