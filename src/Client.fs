@@ -2,6 +2,8 @@ namespace Capivarinha
 
 open System
 open System.Threading.Tasks
+open Capivarinha.Command
+open Capivarinha.Model
 open Model
 
 open Discord
@@ -16,7 +18,7 @@ module Action =
 
             if (diff > threshold) then
                 CanRoll
-            else 
+            else
                 CannotRoll (threshold - diff)
 
         let muteUser (reactionUser: SocketGuildUser) (userToBeMuted: SocketGuildUser) value = task {
@@ -38,9 +40,9 @@ module Action =
         let messageUser =  guild.GetUser(message.Author.Id)
 
         let die = Random.range 1 6
-        
+
         let! canRoll =
-            let bind = function 
+            let bind = function
                 | None -> CanRoll
                 | Some { RolledAt = rolledAt } -> (isTimeThresholdMet rolledAt 1)
 
@@ -49,9 +51,9 @@ module Action =
 
         match (die, canRoll) with
         | value, CanRoll when value = 6 || value = 1 ->
-            let userToBeMuted = 
+            let userToBeMuted =
                 if value = 6
-                then messageUser 
+                then messageUser
                 else reactionUser
 
             do! muteUser reactionUser userToBeMuted value
@@ -97,28 +99,25 @@ module Client =
         printfn "[%s] bot is running" (DateTimeOffset.Now.ToString())
         printfn "Current forbidden words: %A" deps.Settings.ForbiddenWords  })
 
-    let onSlashCommandExec (deps: Dependencies) (command: SocketSlashCommand) = task {
-        let! _ = command.RespondAsync (sprintf "You executed %s" command.Data.Name)
+    let trySlashCommand (command: SocketSlashCommand) =
+        match command.CommandName with
+        | name when name = "" -> Error (CommandError.NotSupported)
+        | _ -> Error (CommandError.NotSupported)
 
-        ()
-    }
+    let tryReactionAdded (_reaction: IReaction) (reactionUser:IUser) (message: IMessage) (emote: IEmote) =
+        match emote with
+        | emote when emote = Emoji("🎲") ->
+            Ok (Command.RollDie { ReactionUser = reactionUser; Message = message })
+        | _ -> Error Command.NotSupported
 
-    let onReactionAdded (deps: Dependencies) (message: IUserMessage) channel (reaction: SocketReaction) = task {
-        let! user = deps.Client.GetUserAsync(message.Author.Id)
-        if (not user.IsBot) then
-            let botGuild = deps.Client.GetGuild(deps.Settings.GuildId)
-            let botChannel = botGuild.GetTextChannel(deps.Settings.BotChannelId)
-
-            if reaction.Emote = new Emoji("🎲") then
-                do! Action.dieReaction deps botGuild botChannel message reaction |> TaskResult.ignoreError
-        ()
-    }
-
-    let onMessageUpdate (deps: Dependencies) (message: SocketMessage) = task {
-        let! user = deps.Client.GetUserAsync(message.Author.Id)
-        if (not user.IsBot) then
-            do! Action.beMoreIronic deps message
-    }
+    let tryMessageReceived (message: IMessage) =
+        let alchimistaId = 866170272762953738UL
+        match message with
+        | message when message.Author.Id = alchimistaId ->
+            Ok (Command.BeLessIronic { Message = message })
+        | message when message.Content.Length <> 0 ->
+            Error CommandError.NotSupported
+        | _ -> Error CommandError.NotSupported
 
     let onMessageReceived (deps: Dependencies) (message: SocketMessage) = task {
         let! user = deps.Client.GetUserAsync(message.Author.Id)
@@ -126,3 +125,5 @@ module Client =
                 do! Action.beMoreIronic deps message
                 do! Action.saveMessageMetadata deps message
     }
+
+
