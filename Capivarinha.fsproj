@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <EmbeddedResource Include="src/migrations/**/*.sql" />
     <Compile Include="src/Settings.fs" />
     <Compile Include="src/Model.fs" />
     <Compile Include="src/Database.fs" />
@@ -11,10 +12,6 @@
     <Compile Include="src/Client.fs" />
     <Compile Include="src/Program.fs" />
     <Content Include="Dockerfile" />
-  </ItemGroup>
-
-  <ItemGroup>
-	<EmbeddedResource Include="src/migrations/**/*.sql" />
   </ItemGroup>
 
   <ItemGroup>
