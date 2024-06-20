@@ -26,7 +26,7 @@ module Main =
             let config = DiscordSocketConfig(GatewayIntents=(GatewayIntents.AllUnprivileged ||| GatewayIntents.MessageContent))
             let client = new DiscordSocketClient(config)
 
-            let tryUser user = ActionHandler.tryActionUser client user
+            let tryUser user = ActionHandler.tryUser client user
 
             let deps: Setup.Dependencies = {
                 Logger = ()

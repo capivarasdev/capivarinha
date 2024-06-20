@@ -121,29 +121,10 @@ module Interface =
             | None -> do! command.RespondAsync "Could not fetch your wallet."
         }
 
-    type CommandNames =
-        | Balance
-        | Transac
-        | Unknown of string
-
-    module CommandNames =
-        let fromString str =
-            match str with
-            | "balance" -> Balance
-            | "transac" -> Transac
-            | _ -> Unknown str
-
-        let toString command =
-            match command with
-            | Balance -> "balance"
-            | Transac -> "transac"
-            | Unknown str -> str
-
-
     let private createBalanceCommand (deps: Setup.Dependencies) = task {
         let globalCommand =
             SlashCommandBuilder()
-                .WithName(CommandNames.toString CommandNames.Balance)
+                .WithName("balance")
                 .WithDescription("Shows user balance")
                 .Build()
 
@@ -155,7 +136,7 @@ module Interface =
     let private createTransacCommand (deps: Setup.Dependencies) = task {
         let globalCommand =
             SlashCommandBuilder()
-                .WithName(CommandNames.toString CommandNames.Transac)
+                .WithName("transac")
                 .WithDescription("Makes a transaction")
                 .AddOptions(
                     [ SlashCommandOptionBuilder()

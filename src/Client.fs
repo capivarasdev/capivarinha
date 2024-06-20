@@ -64,7 +64,7 @@ module Action =
             ()
     }
 
-    let beMoreIronic (deps: Dependencies) (message: SocketMessage) = task {
+    let beLessIronic (deps: Dependencies) (message: SocketMessage) = task {
         if (message.Author.Id = 866170272762953738UL) then
             let content = String.normalize message.Content
 
@@ -97,6 +97,9 @@ module Client =
         printfn "[%s] bot is running" (DateTimeOffset.Now.ToString())
         printfn "Current forbidden words: %A" deps.Settings.ForbiddenWords  })
 
+    // I don't like that we have to map "balance" here just to
+    // build a CommandType value obj, but then map it again on
+    // the ActionHandler handle func..
     let trySlashCommand (command: SocketSlashCommand) =
         match command.CommandName with
         | name when name = "balance" -> Ok (CommandType.Balance command )
@@ -121,7 +124,7 @@ module Client =
     let onMessageReceived (deps: Dependencies) (message: SocketMessage) = task {
         let! user = deps.Client.GetUserAsync(message.Author.Id)
         if (not user.IsBot) then
-                do! Action.beMoreIronic deps message
+                do! Action.beLessIronic deps message
                 do! Action.saveMessageMetadata deps message
     }
 

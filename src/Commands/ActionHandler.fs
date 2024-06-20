@@ -9,7 +9,7 @@ open Commands
 
 type Handler = CommandType -> Task<unit>
 
-let tryActionUser (client: DiscordSocketClient) (actionUser: IUser) (value: 'a) =
+let tryUser (client: DiscordSocketClient) (actionUser: IUser) (value: 'a) =
     let isCurrentBot = client.CurrentUser.Id = actionUser.Id
 
     match (isCurrentBot, actionUser.IsBot) with
