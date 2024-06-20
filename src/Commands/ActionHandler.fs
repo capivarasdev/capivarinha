@@ -7,7 +7,7 @@ open FsToolkit.ErrorHandling
 open Capivarinha
 open Commands
 
-type ActionHandler = CommandType -> Task<unit>
+type Handler = CommandType -> Task<unit>
 
 let tryActionUser (client: DiscordSocketClient) (actionUser: IUser) (value: 'a) =
     let isCurrentBot = client.CurrentUser.Id = actionUser.Id
@@ -17,10 +17,10 @@ let tryActionUser (client: DiscordSocketClient) (actionUser: IUser) (value: 'a) 
     | _, true -> Error (CommandError.InvokedByABot "command invoked by a bot")
     | _ -> Ok value
 
-let validate (handler: ActionHandler) value =
+let validate (handle: Handler) value =
     match value with
-    | Ok cmd -> handler cmd
-    | Error (ExternalError e) -> Task.FromResult ()
+    | Ok action -> handle action
+    | Error (ExternalError e) -> Task.FromResult (printfn "%s" e)
     | Error (InvokedByABot e) -> Task.FromResult (printfn "%s" e)
     | Error NotSupported -> Task.FromResult ()
 
