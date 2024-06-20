@@ -2,11 +2,11 @@ namespace Capivarinha
 
 open System
 open System.Threading.Tasks
-open Capivarinha.Command
 open Capivarinha.Model
 open Discord
 open Discord.WebSocket
 open FsToolkit.ErrorHandling
+open Commands.Domain
 
 module Action =
     let dieReaction (deps: Dependencies) (guild: SocketGuild) (textChannel: SocketTextChannel) (message: IUserMessage) (reaction: SocketReaction) = taskResult {
@@ -99,21 +99,21 @@ module Client =
 
     let trySlashCommand (command: SocketSlashCommand) =
         match command.CommandName with
-        | name when name = "balance" -> Ok (Command.Balance { SlashCommand = command } )
+        | name when name = "balance" -> Ok (CommandType.Balance command )
         | name when name = "" -> Error (CommandError.NotSupported)
         | _ -> Error (CommandError.NotSupported)
 
     let tryReactionAdded (_reaction: IReaction) (reactionUser:IUser) (message: IMessage) (emote: IEmote) =
         match emote with
         | emote when emote = Emoji("🎲") ->
-            Ok (Command.RollDie { ReactionUser = reactionUser; Message = message })
-        | _ -> Error Command.NotSupported
+            Ok (CommandType.RollDie { ReactionUser = reactionUser; Message = message })
+        | _ -> Error CommandError.NotSupported
 
     let tryMessageReceived (message: IMessage) =
         let alchimistaId = 866170272762953738UL
         match message with
         | message when message.Author.Id = alchimistaId ->
-            Ok (Command.BeLessIronic { Message = message })
+            Ok (CommandType.BeLessIronic { Message = message })
         | message when message.Content.Length <> 0 ->
             Error CommandError.NotSupported
         | _ -> Error CommandError.NotSupported

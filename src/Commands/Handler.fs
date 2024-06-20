@@ -4,10 +4,10 @@ open Discord
 open Discord.WebSocket
 open System.Threading.Tasks
 open FsToolkit.ErrorHandling
-open Command
+open Commands.Domain
 
 module Handler =
-    type CommandHandler = Command -> Task<unit>
+    type CommandHandler = CommandType -> Task<unit>
 
     let tryCommandUser (client: DiscordSocketClient) (commandUser: IUser) (value: 'a) =
         let isCurrentBot = client.CurrentUser.Id = commandUser.Id

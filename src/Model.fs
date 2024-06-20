@@ -1,8 +1,7 @@
 namespace Capivarinha
 
-open System.Security.Cryptography
-open Discord
 open Discord.WebSocket
+open System
 
 [<RequireQualifiedAccess>]
 module String =
@@ -24,12 +23,12 @@ module String =
 
 [<RequireQualifiedAccess>]
 module Random =
+    open System.Security.Cryptography
+
     let range fromInclusive toInclusive =
         RandomNumberGenerator.GetInt32(fromInclusive, toInclusive + 1)
 
 module Model =
-    open System
-
     type UserRollTimeout =
         | CanRoll
         | CannotRoll of TimeSpan
@@ -46,19 +45,3 @@ module Model =
         { UserId: UserId
           RolledAt: DateTimeOffset }
 
-module Command =
-    type CommandError =
-        | InvokedByABot of error: string
-        | ExternalError of error: string
-        | NotSupported
-
-    type Command =
-        | RollDie of RollDieCommand
-        | BeLessIronic of BeLessIronicCommand
-        | Balance of Balance
-
-    and RollDieCommand =
-        { ReactionUser: IUser
-          Message: IMessage }
-    and BeLessIronicCommand = { Message: IMessage }
-    and Balance = { SlashCommand: SocketSlashCommand }

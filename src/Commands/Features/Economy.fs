@@ -78,11 +78,10 @@ module Interface =
     open Discord
     open Discord.WebSocket
     open FsToolkit.ErrorHandling
+    open Commands.Domain
     
     module Commands =
-        let getBalanceCommand (deps: Model.Dependencies) (cmd: Command.Balance) = asyncResult {
-            let command = cmd.SlashCommand
-
+        let getBalanceCommand (deps: Model.Dependencies) (command: BalanceCommand) = asyncResult {
             let! wallet =
                 Repository.getUserWallet deps.ConnectionString (string command.User.Id)
 
