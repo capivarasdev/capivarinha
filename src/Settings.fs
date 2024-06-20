@@ -16,7 +16,6 @@ type Settings = {
 
 [<RequireQualifiedAccess>]
 module Settings =
-    open Microsoft.Extensions.Configuration
     open Microsoft.Data.Sqlite
 
     let databaseConnectionString settings =
@@ -28,13 +27,6 @@ module Settings =
         builder.ConnectionString
 
     let load () =
-        let builder =
-            ConfigurationBuilder()
-                .AddEnvironmentVariables()
-                .Build()
-
-        let appConfig = AppConfig(builder)
-
         match FsConfig.EnvConfig.Get<Settings>() with
         | Ok config -> config
         | Error (NotFound envVarName) -> 
