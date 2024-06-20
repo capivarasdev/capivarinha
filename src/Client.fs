@@ -2,11 +2,11 @@ namespace Capivarinha
 
 open System
 open System.Threading.Tasks
-open Capivarinha.Model
+open Capivarinha.Setup
 open Discord
 open Discord.WebSocket
 open FsToolkit.ErrorHandling
-open Commands.Domain
+open Commands
 
 module Action =
     let dieReaction (deps: Dependencies) (guild: SocketGuild) (textChannel: SocketTextChannel) (message: IUserMessage) (reaction: SocketReaction) = taskResult {

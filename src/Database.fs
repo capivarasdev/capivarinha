@@ -1,6 +1,6 @@
 namespace Capivarinha.Database
 
-open Capivarinha.Model
+open Capivarinha.Setup
 
 open DbUp
 open Fumble

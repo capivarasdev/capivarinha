@@ -28,7 +28,7 @@ module Random =
     let range fromInclusive toInclusive =
         RandomNumberGenerator.GetInt32(fromInclusive, toInclusive + 1)
 
-module Model =
+module Setup =
     type UserRollTimeout =
         | CanRoll
         | CannotRoll of TimeSpan

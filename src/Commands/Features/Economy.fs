@@ -78,10 +78,10 @@ module Interface =
     open Discord
     open Discord.WebSocket
     open FsToolkit.ErrorHandling
-    open Commands.Domain
+    open Commands
     
     module Commands =
-        let getBalanceCommand (deps: Model.Dependencies) (command: BalanceCommand) = asyncResult {
+        let getBalance (deps: Setup.Dependencies) (command: BalanceCommand) = asyncResult {
             let! wallet =
                 Repository.getUserWallet deps.ConnectionString (string command.User.Id)
 
@@ -90,7 +90,7 @@ module Interface =
             | None -> do! command.RespondAsync ("Could not fetch your wallet.")
         }
 
-        let makeTransactionCommand (deps: Model.Dependencies) (command: SocketSlashCommand) = asyncResult {
+        let makeTransactionCommand (deps: Setup.Dependencies) (command: SocketSlashCommand) = asyncResult {
             let amount = (command.Data.Options |> Seq.find (fun i -> i.Name = "amount")).Value |> string |> int
             let transferToUser = (command.Data.Options |> Seq.find (fun i -> i.Name = "user")).Value :?> SocketGuildUser
 
@@ -140,7 +140,7 @@ module Interface =
             | Unknown str -> str
 
 
-    let private createBalanceCommand (deps: Model.Dependencies) = task {
+    let private createBalanceCommand (deps: Setup.Dependencies) = task {
         let globalCommand =
             SlashCommandBuilder()
                 .WithName(CommandNames.toString CommandNames.Balance)
@@ -152,7 +152,7 @@ module Interface =
         ()
     }
 
-    let private createTransacCommand (deps: Model.Dependencies) = task {
+    let private createTransacCommand (deps: Setup.Dependencies) = task {
         let globalCommand =
             SlashCommandBuilder()
                 .WithName(CommandNames.toString CommandNames.Transac)
@@ -177,7 +177,7 @@ module Interface =
         ()
     }
 
-    let createCommands (deps: Model.Dependencies) = task {
+    let createCommands (deps: Setup.Dependencies) = task {
         let! _ = createBalanceCommand deps
         let! _ = createTransacCommand deps
         
