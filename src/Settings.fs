@@ -17,6 +17,7 @@ type Settings = {
 [<RequireQualifiedAccess>]
 module Settings =
     open Microsoft.Data.Sqlite
+    open Microsoft.Extensions.Configuration
 
     let databaseConnectionString settings =
         let builder = SqliteConnectionStringBuilder()
@@ -27,7 +28,15 @@ module Settings =
         builder.ConnectionString
 
     let load () =
-        match FsConfig.EnvConfig.Get<Settings>() with
+        let builder = 
+            ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .AddJsonFile("appsettings.json")
+                .Build()
+
+        let appConfig = AppConfig(builder)
+
+        match appConfig.Get<Settings>() with
         | Ok config -> config
         | Error (NotFound envVarName) -> 
             failwithf "Environment variable %s not found" envVarName
