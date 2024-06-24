@@ -31,7 +31,7 @@ module Settings =
         let builder = 
             ConfigurationBuilder()
                 .AddEnvironmentVariables()
-                .AddJsonFile("appsettings.json")
+                .AddJsonFile("appsettings.json", optional=true)
                 .Build()
 
         let appConfig = AppConfig(builder)
