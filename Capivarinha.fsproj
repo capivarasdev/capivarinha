@@ -8,7 +8,9 @@
     <Compile Include="src/Settings.fs" />
     <Compile Include="src/Model.fs" />
     <Compile Include="src/Database.fs" />
-    <Compile Include="src\Economy\Economy.fs" />
+    <Compile Include="src\Commands\Commands.fs" />
+    <Compile Include="src\Commands\Features\Economy.fs" />
+    <Compile Include="src\Commands\ActionHandler.fs" />
     <Compile Include="src/Client.fs" />
     <Compile Include="src/Program.fs" />
     <Content Include="Dockerfile" />

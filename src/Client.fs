@@ -2,13 +2,11 @@ namespace Capivarinha
 
 open System
 open System.Threading.Tasks
-open Capivarinha.Command
-open Capivarinha.Model
-open Model
-
+open Capivarinha.Setup
 open Discord
 open Discord.WebSocket
 open FsToolkit.ErrorHandling
+open Commands
 
 module Action =
     let dieReaction (deps: Dependencies) (guild: SocketGuild) (textChannel: SocketTextChannel) (message: IUserMessage) (reaction: SocketReaction) = taskResult {
@@ -66,7 +64,7 @@ module Action =
             ()
     }
 
-    let beMoreIronic (deps: Dependencies) (message: SocketMessage) = task {
+    let beLessIronic (deps: Dependencies) (message: SocketMessage) = task {
         if (message.Author.Id = 866170272762953738UL) then
             let content = String.normalize message.Content
 
@@ -99,22 +97,26 @@ module Client =
         printfn "[%s] bot is running" (DateTimeOffset.Now.ToString())
         printfn "Current forbidden words: %A" deps.Settings.ForbiddenWords  })
 
+    // I don't like that we have to map "balance" here just to
+    // build a CommandType value obj, but then map it again on
+    // the ActionHandler handle func..
     let trySlashCommand (command: SocketSlashCommand) =
         match command.CommandName with
+        | name when name = "balance" -> Ok (CommandType.Balance command )
         | name when name = "" -> Error (CommandError.NotSupported)
         | _ -> Error (CommandError.NotSupported)
 
     let tryReactionAdded (_reaction: IReaction) (reactionUser:IUser) (message: IMessage) (emote: IEmote) =
         match emote with
         | emote when emote = Emoji("🎲") ->
-            Ok (Command.RollDie { ReactionUser = reactionUser; Message = message })
-        | _ -> Error Command.NotSupported
+            Ok (CommandType.RollDie { ReactionUser = reactionUser; Message = message })
+        | _ -> Error CommandError.NotSupported
 
     let tryMessageReceived (message: IMessage) =
         let alchimistaId = 866170272762953738UL
         match message with
         | message when message.Author.Id = alchimistaId ->
-            Ok (Command.BeLessIronic { Message = message })
+            Ok (CommandType.BeLessIronic { Message = message })
         | message when message.Content.Length <> 0 ->
             Error CommandError.NotSupported
         | _ -> Error CommandError.NotSupported
@@ -122,7 +124,7 @@ module Client =
     let onMessageReceived (deps: Dependencies) (message: SocketMessage) = task {
         let! user = deps.Client.GetUserAsync(message.Author.Id)
         if (not user.IsBot) then
-                do! Action.beMoreIronic deps message
+                do! Action.beLessIronic deps message
                 do! Action.saveMessageMetadata deps message
     }
 
