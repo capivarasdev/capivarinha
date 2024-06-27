@@ -91,6 +91,39 @@ module Action =
     }
 
 module Client =
+    type EventHandlers = 
+        { Ready: unit -> Task
+          SlashCommandExecuted: DiscordSocketClient -> SocketSlashCommand -> Task
+          ReactionAdded: DiscordSocketClient -> Cacheable<IUserMessage,uint64> -> Cacheable<IMessageChannel,uint64> -> SocketReaction -> Task
+          MessageUpdated: DiscordSocketClient -> Cacheable<IMessage,uint64> -> SocketMessage -> ISocketMessageChannel -> Task
+          MessageReceived: DiscordSocketClient -> SocketMessage -> Task }
+        static member init: EventHandlers =
+            let ignoreTask = task { return () }
+
+            let onReady _: Task = task {
+                printfn "[%s] bot is running" (DateTimeOffset.Now.ToString())
+                return ()
+            }
+
+            { Ready = onReady
+              SlashCommandExecuted = fun _ _ -> ignoreTask
+              ReactionAdded = fun _ _ _ _ -> ignoreTask
+              MessageUpdated = fun _ _ _ _ -> ignoreTask
+              MessageReceived = fun _ _ -> ignoreTask }
+
+    let setup handlers =
+        let config = DiscordSocketConfig(GatewayIntents=(GatewayIntents.AllUnprivileged ||| GatewayIntents.MessageContent))
+        let client = new DiscordSocketClient(config)
+
+        client.add_Ready handlers.Ready
+        client.add_SlashCommandExecuted (handlers.SlashCommandExecuted client)
+        client.add_ReactionAdded (handlers.ReactionAdded client)
+        client.add_MessageUpdated (handlers.MessageUpdated client)
+        client.add_MessageReceived (handlers.MessageReceived client)
+
+        client
+
+
     let onReady (deps: Dependencies) = Func<Task>(fun _ -> task {
         do! Economy.Interface.createCommands deps
 
