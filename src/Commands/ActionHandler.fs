@@ -32,4 +32,5 @@ let handle (deps: Setup.Dependencies) (queueAction: Task<unit> -> unit) cmd = ta
     | BeLessIronic cmd -> ()
     // On SlashCommands: Economy
     | Balance cmd -> do! (Economy.Interface.Commands.getBalance deps cmd) |> AsyncResult.ignoreError
+    | Transac cmd -> do! (Economy.Interface.Commands.makeTransactionCommand deps cmd) |> AsyncResult.ignoreError
 }

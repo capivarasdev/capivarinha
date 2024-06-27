@@ -12,6 +12,7 @@ type CommandType =
     | RollDie of RollDieCommand
     | BeLessIronic of BeLessIronicCommand
     | Balance of BalanceCommand
+    | Transac of BalanceCommand
 
 and RollDieCommand = { ReactionUser: IUser; Message: IMessage }
 and BeLessIronicCommand = { Message: IMessage }

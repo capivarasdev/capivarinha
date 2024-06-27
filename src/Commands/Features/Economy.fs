@@ -37,7 +37,17 @@ module Repository =
             conn
             |> Sql.connect
             |> Sql.query
-                @"SELECT u.id AS user_id, u.discord_id AS discord_id,
+                @"WITH user_exists AS (
+                    SELECT COUNT(*) AS cnt
+                    FROM [user]
+                    WHERE discord_id = @discordId
+                )
+
+                INSERT INTO [user] (discord_id)
+                SELECT @discordId
+                WHERE (SELECT cnt FROM user_exists) = 0;
+                
+                SELECT u.id AS user_id, u.discord_id AS discord_id,
                     COALESCE(SUM(CASE WHEN t.to_user_id = u.id THEN t.amount ELSE 0 END) -
                              SUM(CASE WHEN t.from_user_id = u.id THEN t.amount ELSE 0 END), 0) AS amount
                 FROM [user] u
@@ -56,22 +66,30 @@ module Repository =
             )
     }
 
-    let createTransaction conn (transaction: Entity.Transaction) = asyncResult {
-        return!
-            conn
-            |> Sql.connect
-            |> Sql.query
-                @"INSERT INTO [transaction] (from_user_id, to_user_id, amount)
-                SELECT fromUser.id, toUser.id, @amount
-                FROM [user] fromUser, [user] toUser
-                WHERE fromUser.discord_id = @fromDiscUserId
-                AND toUser.discord_id = @toDiscUserId"
-            |> Sql.parameters
-                [ "@fromDiscUserId", Sql.string transaction.FromDiscordUserId
-                  "@toDiscUserId", Sql.string transaction.ToDiscordUserId
-                  "@amount", Sql.int transaction.Amount ]
-            |> Sql.executeNonQuery
-    }
+    let createTransaction conn (transaction: Entity.Transaction) =
+        conn
+        |> Sql.connect
+        |> Sql.query
+            @"WITH to_user_exists AS (
+                SELECT COUNT(*) AS cnt
+                FROM [user]
+                WHERE discord_id = @toDiscUserId
+            )
+
+            INSERT INTO [user] (discord_id)
+            SELECT @toDiscUserId
+            WHERE (SELECT cnt FROM to_user_exists) = 0;
+                
+            INSERT INTO [transaction] (from_user_id, to_user_id, amount)
+            SELECT fromUser.id, toUser.id, @amount
+            FROM [user] fromUser, [user] toUser
+            WHERE fromUser.discord_id = @fromDiscUserId
+            AND toUser.discord_id = @toDiscUserId"
+        |> Sql.parameters
+            [ "@fromDiscUserId", Sql.string transaction.FromDiscordUserId
+              "@toDiscUserId", Sql.string transaction.ToDiscordUserId
+              "@amount", Sql.int transaction.Amount ]
+        |> Sql.executeNonQuery
     
 module Interface =
     open Capivarinha
@@ -103,21 +121,20 @@ module Interface =
                 Repository.getUserWallet deps.ConnectionString (string command.User.Id)
 
             match wallet with
-            | Some w ->
-                if w.Amount >= int amount then
-                    let transac: Entity.Transaction = {
-                        FromDiscordUserId = string command.User.Id
-                        Amount = amount
-                        ToDiscordUserId = string transferToUser.Id
-                    }
+            | Some w when w.Amount >= int amount ->
+                let transac: Entity.Transaction = {
+                    FromDiscordUserId = string command.User.Id
+                    Amount = amount
+                    ToDiscordUserId = string transferToUser.Id
+                }
         
-                    let! succ = Repository.createTransaction deps.ConnectionString transac
+                let! succ = Repository.createTransaction deps.ConnectionString transac
 
-                    match succ with
-                    | 1 -> do! command.RespondAsync "Transaction was successful!"
-                    | _ -> do! command.RespondAsync "Transaction failed."
-                else
-                    do! command.RespondAsync "You don't have enough funds."
+                match succ with
+                | 1 -> do! command.RespondAsync "Transaction was successful!"
+                | _ -> do! command.RespondAsync "Transaction failed."
+            | Some _ ->
+                do! command.RespondAsync "You don't have enough funds."
             | None -> do! command.RespondAsync "Could not fetch your wallet."
         }
 

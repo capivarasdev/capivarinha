@@ -4,6 +4,9 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <EmbeddedResource Include="src/migrations/**/*.sql" />
     <Compile Include="src/Settings.fs" />
     <Compile Include="src/Model.fs" />
