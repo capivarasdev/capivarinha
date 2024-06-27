@@ -9,10 +9,10 @@ open Commands
 
 type Handler = CommandType -> Task<unit>
 
-let tryUser (client: DiscordSocketClient) (actionUser: IUser) (value: 'a) =
-    let isCurrentBot = client.CurrentUser.Id = actionUser.Id
+let tryUser (currentUserId: uint64) (actionUserId: uint64) (actionUserIsBot: bool) (value: 'a) =
+    let isCurrentBot = actionUserId = actionUserId
 
-    match (isCurrentBot, actionUser.IsBot) with
+    match (isCurrentBot, actionUserIsBot) with
     | true, _ -> Error (CommandError.InvokedByABot "command invoked by current bot")
     | _, true -> Error (CommandError.InvokedByABot "command invoked by a bot")
     | _ -> Ok value
