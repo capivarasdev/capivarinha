@@ -3,10 +3,11 @@
 open Discord
 open Discord.WebSocket
 
-type CommandError =
+type CommandError<'a> =
     | InvokedByABot of error: string
     | ExternalError of error: string
-    | NotSupported
+    | UnexpectedExn of exn
+    | UnsupportedCommand
 
 type CommandType =
     | RollDie of RollDieCommand

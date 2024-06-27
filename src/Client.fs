@@ -104,14 +104,14 @@ module Client =
         match command.CommandName with
         | name when name = "balance" -> Ok (CommandType.Balance command )
         | name when name = "transac" -> Ok (CommandType.Transac command )
-        | name when name = "" -> Error (CommandError.NotSupported)
-        | _ -> Error (CommandError.NotSupported)
+        | name when name = "" -> Error (CommandError.UnsupportedCommand)
+        | _ -> Error (CommandError.UnsupportedCommand)
 
     let tryReactionAdded (_reaction: IReaction) (reactionUser:IUser) (message: IMessage) (emote: IEmote) =
         match emote with
         | emote when emote = Emoji("🎲") ->
             Ok (CommandType.RollDie { ReactionUser = reactionUser; Message = message })
-        | _ -> Error CommandError.NotSupported
+        | _ -> Error CommandError.UnsupportedCommand
 
     let tryMessageReceived (message: IMessage) =
         let alchimistaId = 866170272762953738UL
@@ -119,8 +119,8 @@ module Client =
         | message when message.Author.Id = alchimistaId ->
             Ok (CommandType.BeLessIronic { Message = message })
         | message when message.Content.Length <> 0 ->
-            Error CommandError.NotSupported
-        | _ -> Error CommandError.NotSupported
+            Error CommandError.UnsupportedCommand
+        | _ -> Error CommandError.UnsupportedCommand
 
     let onMessageReceived (deps: Dependencies) (message: SocketMessage) = task {
         let! user = deps.Client.GetUserAsync(message.Author.Id)

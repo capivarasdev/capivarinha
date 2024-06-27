@@ -1,9 +1,7 @@
 ﻿module ActionHandler
 
 open Discord
-open Discord.WebSocket
 open System.Threading.Tasks
-open FsToolkit.ErrorHandling
 open Capivarinha
 open Commands
 
@@ -22,15 +20,14 @@ let validate (handle: Handler) value =
     | Ok action -> handle action
     | Error (ExternalError e) -> Task.FromResult (printfn "%s" e)
     | Error (InvokedByABot e) -> Task.FromResult (printfn "%s" e)
-    | Error NotSupported -> Task.FromResult ()
+    | Error (UnexpectedExn ex) -> Task.FromResult (printfn "%A" ex)
+    | Error UnsupportedCommand -> Task.FromResult ()
 
 let handle (deps: Setup.Dependencies) (queueAction: Task<unit> -> unit) cmd = task {
-    match cmd with
-    // On ReactionAdded
-    | RollDie cmd -> queueAction (task { return () })
-    // On MessageUpdate
-    | BeLessIronic cmd -> ()
-    // On SlashCommands: Economy
-    | Balance cmd -> do! (Economy.Interface.Commands.getBalance deps cmd) |> AsyncResult.ignoreError
-    | Transac cmd -> do! (Economy.Interface.Commands.makeTransactionCommand deps cmd) |> AsyncResult.ignoreError
-}
+    // match cmd with
+    // | RollDie cmd -> queueAction (task { return () })
+    // | BeLessIronic cmd -> ()
+    // | Transac cmd -> (Economy.Interface.Commands.makeTransactionCommand deps cmd)
+    // | Balance cmd -> (Economy.Interface.Commands.getBalance deps cmd)
+    return ()
+}    

@@ -32,39 +32,37 @@ module Repository =
     open Capivarinha.Database
     open FsToolkit.ErrorHandling
 
-    let getUserWallet conn discordId = asyncResult {
-        return!
-            conn
-            |> Sql.connect
-            |> Sql.query
-                @"WITH user_exists AS (
-                    SELECT COUNT(*) AS cnt
-                    FROM [user]
-                    WHERE discord_id = @discordId
-                )
-
-                INSERT INTO [user] (discord_id)
-                SELECT @discordId
-                WHERE (SELECT cnt FROM user_exists) = 0;
-                
-                SELECT u.id AS user_id, u.discord_id AS discord_id,
-                    COALESCE(SUM(CASE WHEN t.to_user_id = u.id THEN t.amount ELSE 0 END) -
-                             SUM(CASE WHEN t.from_user_id = u.id THEN t.amount ELSE 0 END), 0) AS amount
-                FROM [user] u
-                LEFT JOIN [transaction] t ON u.id = t.from_user_id OR u.id = t.to_user_id
-                WHERE u.discord_id = @discordId
-                GROUP BY u.id, u.discord_id"
-            |> Sql.parameters [ "@discordId", Sql.string discordId ]
-            |> Sql.executeRowAsync(fun read ->
-                let r: Entity.Wallet = {
-                    UserId = read.int "user_id";
-                    DiscordId = read.string "discord_id";
-                    Amount = read.int "amount";
-                }
-                
-                r
+    let getUserWallet conn discordId =
+        conn
+        |> Sql.connect
+        |> Sql.query
+            @"WITH user_exists AS (
+                SELECT COUNT(*) AS cnt
+                FROM [user]
+                WHERE discord_id = @discordId
             )
-    }
+
+            INSERT INTO [user] (discord_id)
+            SELECT @discordId
+            WHERE (SELECT cnt FROM user_exists) = 0;
+            
+            SELECT u.id AS user_id, u.discord_id AS discord_id,
+                COALESCE(SUM(CASE WHEN t.to_user_id = u.id THEN t.amount ELSE 0 END) -
+                            SUM(CASE WHEN t.from_user_id = u.id THEN t.amount ELSE 0 END), 0) AS amount
+            FROM [user] u
+            LEFT JOIN [transaction] t ON u.id = t.from_user_id OR u.id = t.to_user_id
+            WHERE u.discord_id = @discordId
+            GROUP BY u.id, u.discord_id"
+        |> Sql.parameters [ "@discordId", Sql.string discordId ]
+        |> Sql.executeRowAsync(fun read ->
+            let r: Entity.Wallet = {
+                UserId = read.int "user_id";
+                DiscordId = read.string "discord_id";
+                Amount = read.int "amount";
+            }
+            
+            r
+        )
 
     let createTransaction conn (transaction: Entity.Transaction) =
         conn
@@ -89,15 +87,15 @@ module Repository =
             [ "@fromDiscUserId", Sql.string transaction.FromDiscordUserId
               "@toDiscUserId", Sql.string transaction.ToDiscordUserId
               "@amount", Sql.int transaction.Amount ]
-        |> Sql.executeNonQuery
-    
+        |> Sql.executeNonQueryAsync
+
 module Interface =
     open Capivarinha
     open Discord
     open Discord.WebSocket
     open FsToolkit.ErrorHandling
     open Commands
-    
+
     module Commands =
         let getBalance (deps: Setup.Dependencies) (command: BalanceCommand) = asyncResult {
             let! wallet =
@@ -118,7 +116,8 @@ module Interface =
                 do! command.RespondAsync "Amount has to be greater than 0."
 
             let! wallet =
-                Repository.getUserWallet deps.ConnectionString (string command.User.Id)
+                Repository.getUserWallet deps.ConnectionString (string command.User.Id) 
+                |> AsyncResult.mapError (fun e -> UnexpectedExn e)
 
             match wallet with
             | Some w when w.Amount >= int amount ->
@@ -127,8 +126,10 @@ module Interface =
                     Amount = amount
                     ToDiscordUserId = string transferToUser.Id
                 }
-        
-                let! succ = Repository.createTransaction deps.ConnectionString transac
+
+                let! succ = 
+                    Repository.createTransaction deps.ConnectionString transac
+                    |> AsyncResult.mapError (fun e -> UnexpectedExn e)
 
                 match succ with
                 | 1 -> do! command.RespondAsync "Transaction was successful!"
