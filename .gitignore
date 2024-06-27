@@ -10,6 +10,7 @@
 *.vcxproj.user
 *.code-workspace
 launchSettings.json
+appsettings.json
 
 # Others
 *sqlite*

@@ -103,6 +103,7 @@ module Client =
     let trySlashCommand (command: SocketSlashCommand) =
         match command.CommandName with
         | name when name = "balance" -> Ok (CommandType.Balance command )
+        | name when name = "transac" -> Ok (CommandType.Transac command )
         | name when name = "" -> Error (CommandError.NotSupported)
         | _ -> Error (CommandError.NotSupported)
 
