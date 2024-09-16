@@ -3,45 +3,54 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Convert import.meta.url to a file path and derive __dirname equivalent
+// Resolve the current directory path for module path resolution
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// This function will deploy the commands
-export async function deployCommands(token: string, clientId: string, guildId: string) {
-  // This will hold the slash commands data
-  const commands = [];
+/**
+ * Deploys all commands to Discord by reading the commands directory,
+ * converting each command to JSON, and then registering them with the Discord API.
+ *
+ * @param {string} token - The bot's token used to authenticate with Discord API.
+ * @param {string} clientId - The client ID of the bot.
+ * @param {string} guildId - The guild (server) ID where the commands should be registered.
+ */
+export const deployCommands = async (token: string, clientId: string, guildId: string) => {
+  try {
+    // Initialize an array to hold the slash commands data
+    const commands = [];
 
-  // Path to the commands folder
-  const commandsPath = path.join(__dirname, '../commands');
-  const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.ts') || file.endsWith(".js"));
+    // Path to the commands directory
+    const commandsPath = path.join(__dirname, '../commands');
+    // Get all command files (both .ts and .js for dev and production environments)
+    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js') || file.endsWith('.ts'));
 
-  // Dynamically import each command file
-  for (const file of commandFiles) {
-    const command = (await import(`../commands/${file}`)).default;
+    // Dynamically import each command and convert to JSON
+    for (const file of commandFiles) {
+      const command = (await import(`../commands/${file}`)).default;
 
-    if (!command || !command.data) {
-      console.error(`Command file ${file} is missing "data" property.`);
-      continue; // Skip commands that don't have a "data" property
+      // Check if the command has the required "data" property
+      if (!command || !command.data) {
+        console.warn(`Command file ${file} is missing "data" property. Skipping...`);
+        continue;
+      }
+
+      // Push the serialized command data to the array
+      commands.push(command.data.toJSON());
     }
 
-    commands.push(command.data.toJSON()); // Push the serialized slash command data
-  }
+    // Log the number of commands being deployed
+    console.log(`Deploying ${commands.length} command(s) to Discord...`);
 
-  // Set up the REST API for Discord.js
-  const rest = new REST({ version: '10' }).setToken(token);
+    // Set up the REST API client for interacting with Discord
+    const rest = new REST({ version: '10' }).setToken(token);
 
-  try {
-    console.log('Started refreshing application (/) commands.');
+    // Register commands with Discord via the REST API
+    await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
 
-    // Deploy the commands to the guild (server)
-    await rest.put(
-      Routes.applicationGuildCommands(clientId, guildId),
-      { body: commands }, // Pass the commands array here
-    );
-
+    // Log success message
     console.log('Successfully reloaded application (/) commands.');
   } catch (error) {
-    console.error('Failed to deploy commands:', error);
+    console.error('Error deploying commands:', error);
   }
-}
+};
