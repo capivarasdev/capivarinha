@@ -17,7 +17,7 @@ const command: Command = {
     .addStringOption(option =>
       option.setName('reason')
         .setDescription('Reason for muting the member')
-        .setRequired(false)) as SlashCommandBuilder,  // No need for casting
+        .setRequired(false)) as SlashCommandBuilder,
 
   async execute(interaction: ChatInputCommandInteraction) {
     const target = interaction.options.getUser('target');
@@ -49,7 +49,7 @@ const command: Command = {
       // Apply the timeout
       await member.timeout(timeoutDuration, reason);
 
-      await interaction.reply({ content: `${member.user.tag} has been muted for ${duration} minutes. Reason: ${reason}` });
+      await interaction.reply({ content: `<@${member.user.id}> has been muted for ${duration} minute${duration! > 1 ? "s" : ""}. Reason: ${reason}` });
     } catch (error) {
       console.error(error);
       await interaction.reply({ content: 'There was an error muting the member.', ephemeral: true });
