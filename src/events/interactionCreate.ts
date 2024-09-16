@@ -1,5 +1,5 @@
 import { Interaction, Client } from 'discord.js';
-import { Command } from '../types'; // Import the Command type
+import { Command } from '../types.js'; // Import the Command type
 
 export default {
   name: 'interactionCreate',

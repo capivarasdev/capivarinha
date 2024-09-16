@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ChatInputCommandInteraction, CommandInteraction, GuildMember, PermissionsBitField } from 'discord.js';
-import { Command } from '../types';  // Adjust the path to your types file
+import { Command } from '../types.js';  // Adjust the path to your types file
 
 const command: Command = {
   data: new SlashCommandBuilder()

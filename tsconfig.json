@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
       "target": "ES2021",                            // Target modern JavaScript (ES2021)
-      "module": "ESNext",                            // Use ESNext for module system (supports import/export)
-      "moduleResolution": "node",                    // Resolve modules using Node.js-style resolution
+      "module": "NodeNext",                            // Use ESNext for module system (supports import/export)
+      "moduleResolution": "NodeNext",                    // Resolve modules using Node.js-style resolution
       "esModuleInterop": true,                       // Ensures compatibility with CommonJS modules
       "skipLibCheck": true,                          // Skip type checking for declaration files (faster)
       "forceConsistentCasingInFileNames": true,      // Enforce consistent casing in imports
