@@ -40,5 +40,5 @@ const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('
     }
   }
 
-  client.login(process.env.TOKEN);
+  client.login(process.env.DISCORD_TOKEN);
 })();

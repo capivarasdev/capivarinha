@@ -30,7 +30,7 @@ const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('
     commands.push(command.data.toJSON()); // Push the serialized slash command data
   }
 
-  const rest = new REST({ version: '10' }).setToken(process.env.TOKEN!);
+  const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN!);
 
   try {
     console.log('Started refreshing application (/) commands.');
