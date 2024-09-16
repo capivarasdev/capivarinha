@@ -49,7 +49,7 @@ const command: Command = {
       // Apply the timeout
       await member.timeout(timeoutDuration, reason);
 
-      await interaction.reply({ content: `${member.user.tag} has been muted for ${duration} minutes. Reason: ${reason}` });
+      await interaction.reply({ content: `<@${member.user.id}> has been muted for ${duration} minute${duration! > 1 ? "s" : ""}. Reason: ${reason}` });
     } catch (error) {
       console.error(error);
       await interaction.reply({ content: 'There was an error muting the member.', ephemeral: true });

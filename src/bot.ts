@@ -9,7 +9,10 @@ config(); // Load .env variables
 
 // Extend Client to include commands
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [
+    GatewayIntentBits.Guilds, 
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent],
 }) as Client & { commands: Collection<string, Command> };
 
 client.commands = new Collection();
