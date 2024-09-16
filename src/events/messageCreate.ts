@@ -12,8 +12,6 @@ export default {
    * @param client - The Discord client instance.
    */
   execute(message: Message, _: Client) {
-    console.log(`Received message from ${message.author.tag}: ${message.content}`);
-
     const targetUserId = '357236983023796226'; // astroo
     const targetWord = 'ola';
 
