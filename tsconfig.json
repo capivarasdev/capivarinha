@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+      "target": "ES2021",                            // Target modern JavaScript (ES2021)
+      "module": "ESNext",                            // Use ESNext for module system (supports import/export)
+      "moduleResolution": "node",                    // Resolve modules using Node.js-style resolution
+      "esModuleInterop": true,                       // Ensures compatibility with CommonJS modules
+      "skipLibCheck": true,                          // Skip type checking for declaration files (faster)
+      "forceConsistentCasingInFileNames": true,      // Enforce consistent casing in imports
+      "strict": true,                                // Enable strict type-checking options
+      "allowJs": true,                               // Allow JavaScript files in the project
+      "outDir": "./dist",                            // Output compiled files to a "dist" folder
+      "rootDir": "./src",                            // Specify root directory of input files
+      "resolveJsonModule": true,                     // Allow importing .json files
+      "isolatedModules": true,                       // Ensure every file can be treated as an isolated module
+      "noEmit": false,                               // Set to true if you don't want compiled files (when using ts-node)
+      "types": ["node", "discord.js"],               // Include type definitions for Node.js and Discord.js
+      "lib": ["ESNext", "DOM"],                      // Specify library files (ESNext, DOM for Discord.js)
+      "baseUrl": ".",                                // Set base directory to project root
+      "paths": {                                     // Alias support (optional)
+        "@commands/*": ["src/commands/*"],
+        "@events/*": ["src/events/*"]
+      }
+    },
+    "ts-node": {
+        // Tell ts-node CLI to install the --loader automatically
+        "esm": true
+    },
+    "include": ["src/**/*.ts"],                      // Include all TypeScript files in the "src" folder
+    "exclude": ["node_modules", "dist"]              // Exclude node_modules and dist folders
+  }
+  

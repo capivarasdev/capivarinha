@@ -1,0 +1,51 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript compiled files
+dist/
+build/
+out/
+
+# Local environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# TypeScript cache and temporary files
+*.tsbuildinfo
+
+# Production files (if any)
+*.env.production
+*.env
+
+# Coverage directory for testing
+coverage/
+
+# Ignore compiled JavaScript files if using 'ts-node' for runtime execution
+*.js
+*.js.map
+
+# Ignore any local test data or files
+*.test.json
