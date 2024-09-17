@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, CommandInteraction, GuildMember, PermissionsBitField } from 'discord.js';
+import { ChatInputCommandInteraction, CommandInteraction, GuildMember, PermissionsBitField, TextChannel } from 'discord.js';
 import { Command } from '../types.js';  // Adjust the path to your types file
 
 const command: Command = {
@@ -17,12 +17,17 @@ const command: Command = {
     .addStringOption(option =>
       option.setName('reason')
         .setDescription('Reason for muting the member')
+        .setRequired(false))
+    .addIntegerOption(option =>
+      option.setName('purge')
+        .setDescription('Number of messages to delete from the user')
         .setRequired(false)) as SlashCommandBuilder,
 
   async execute(interaction: ChatInputCommandInteraction) {
     const target = interaction.options.getUser('target');
     const duration = interaction.options.getInteger('duration');
     const reason = interaction.options.getString('reason') || 'No reason provided';
+    const purgeCount = interaction.options.getInteger('purge') || 0;
 
     // Fetch the target member from the guild
     const member = interaction.guild?.members.cache.get(target?.id as string) as GuildMember;
@@ -45,6 +50,22 @@ const command: Command = {
     try {
       // Set the timeout duration (in milliseconds)
       const timeoutDuration = duration! * 60 * 1000;
+
+      // Optionally purge messages if a valid purge count is provided
+      if (purgeCount > 0 && interaction.channel?.isTextBased()) {
+        const channel = interaction.channel as TextChannel;
+
+        // Fetch messages from the channel
+        const fetchedMessages = await channel.messages.fetch({ limit: 50 });
+        const userMessages = fetchedMessages.filter(msg => msg.author.id === member.user.id).first(purgeCount);
+
+        // Delete the user's messages
+        for (const msg of userMessages) {
+          await msg.delete().catch(err => console.log(`Failed to delete message: ${err}`));
+        }
+
+        console.log(`${userMessages.length} message(s) deleted.`);
+      }
 
       // Apply the timeout
       await member.timeout(timeoutDuration, reason);
