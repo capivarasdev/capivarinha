@@ -46,23 +46,21 @@ function handleAstrooMessage(message: Message) {
 async function handleQuestionSpam(message: Message, client: Client) {
     const askLuiz = '1283895078867173476';
     const charactersToCheck = ['?', '¿', '‽', '؟', '⸮', '﹖', '？', 'ʔ', '?', '？'];
+    const messageRateLimit = 3;
 
     // Only proceed if the message is in the specified channel
     if (message.channel.id !== askLuiz) return;
   
-    // Fetch the last 2 messages from the channel (including the current message)
     const channel = message.channel as TextChannel;
     const fetchedMessages = await channel.messages.fetch({ limit: 5 });
+    const userMessages = fetchedMessages.filter(msg => msg.author.id === message.author.id).first(messageRateLimit);
   
-    // Filter messages by the author and ensure we get the last two
-    const userMessages = fetchedMessages.filter(msg => msg.author.id === message.author.id).first(2);
-  
-    // Check if both messages contain a "?"
+    // Check if messages contain a "?"
     const allMessagesContainCharacter = userMessages.every(msg => 
         charactersToCheck.some(character => msg.content.includes(character))
       );
 
-    if (userMessages.length >= 2 && allMessagesContainCharacter) {
+    if (userMessages.length >= messageRateLimit && allMessagesContainCharacter) {
         const member = message.guild?.members.cache.get(message.author.id) as GuildMember;
 
         // Check if the bot has the correct permissions to mute and delete messages
