@@ -15,7 +15,7 @@ export default {
     if (message.author.bot) return;
 
     handleAstrooMessage(message);
-    handleQuestionSpam(message, client);
+    // handleQuestionSpam(message, client);
   },
 };
 
